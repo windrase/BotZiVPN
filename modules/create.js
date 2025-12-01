@@ -26,6 +26,7 @@ if (!/^[a-z0-9-]+$/.test(username)) {
       let d;
       try {
         d = JSON.parse(stdout);
+        console.log("⚠️ FULL DATA:", JSON.stringify(d, null, 2));
       } catch (e) {
         console.error('❌ Gagal parsing JSON:', e.message);
         console.error('🪵 Output:', stdout);
@@ -45,14 +46,7 @@ if (!/^[a-z0-9-]+$/.test(username)) {
         );
       }
 
-      const msg = `🔐 *AKUN ZIVPN BERHASIL DIBUAT*
-━━━━━━━━━━━━━━━━━━━━━
-🌍 *Server:* ${domain}
-🔑 *Password:* ${password}
-⏳ *Masa Aktif:* ${exp} Hari
-━━━━━━━━━━━━━━━━━━━━━
-${d.message}
-`;
+      const msg = `${d.message}`;
 
         return resolve(msg);
       });

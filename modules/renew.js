@@ -3,7 +3,7 @@ const { exec } = require('child_process');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./sellzivpn.db');
 
-async function renewssh(username, exp, limitip, serverId) {
+async function renewssh(username, password, exp, limitip, serverId) {
   console.log(`Renewing SSH account for ${username} with expiry ${exp} days, limit IP ${limitip} on server ${serverId}`);
 
   // Validasi username
@@ -28,6 +28,7 @@ if (!/^[a-z0-9-]+$/.test(username)) {
       let d;
       try {
         d = JSON.parse(stdout);
+        console.log("⚠️ FULL DATA:", JSON.stringify(d, null, 2));
       } catch (e) {
         console.error('❌ Gagal parsing JSON:', e.message);
         console.error('🪵 Output:', stdout);
@@ -47,14 +48,7 @@ if (!/^[a-z0-9-]+$/.test(username)) {
         );
       }
 
-      const msg = `🔄 *AKUN ZIVPN BERHASIL DI-RENEW*
-━━━━━━━━━━━━━━━━━━━━━
-🌍 *Server:* ${domain}
-🔑 *Password:* ${password}
-⏳ *Masa Aktif:* ${exp} Hari
-━━━━━━━━━━━━━━━━━━━━━
-${d.message}
-`;
+      const msg = `${d.message}`;
 
         return resolve(msg);
       });

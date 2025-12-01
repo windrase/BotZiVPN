@@ -993,19 +993,19 @@ async function handleServiceAction(ctx, action) {
   let keyboard;
   if (action === 'create') {
     keyboard = [
-      [{ text: 'Buat Ssh/Ovpn', callback_data: 'create_ssh' }],      
+      [{ text: 'Buat SSH UDP', callback_data: 'create_ssh' }],      
     ];
   } else if (action === 'trial') {
     keyboard = [
-      [{ text: 'Trial Ssh/Ovpn', callback_data: 'trial_ssh' }],      
+      [{ text: 'Trial SSH UDP', callback_data: 'trial_ssh' }],      
     ];
   } else if (action === 'renew') {
     keyboard = [
-      [{ text: 'Perpanjang Ssh/Ovpn', callback_data: 'renew_ssh' }],      
+      [{ text: 'Perpanjang SSH UDP', callback_data: 'renew_ssh' }],      
     ];
   } else if (action === 'del') {
     keyboard = [
-      [{ text: 'Hapus Ssh/Ovpn', callback_data: 'del_ssh' }],      
+      [{ text: 'Hapus SSH UDP', callback_data: 'del_ssh' }],      
     ];
   } 
   try {
@@ -1467,7 +1467,15 @@ bot.action(/(create|renew)_username_(ssh)_(.+)/, async (ctx) => {
   const action = ctx.match[1];
   const type = ctx.match[2];
   const serverId = ctx.match[3];
-  userState[ctx.chat.id] = { step: `username_${action}_${type}`, serverId, type, action };
+
+  // Ambil atau buat state user
+  if (!userState[ctx.chat.id]) userState[ctx.chat.id] = {};
+  const state = userState[ctx.chat.id];
+
+  state.step = `username_${action}_${type}`;
+  state.serverId = serverId;
+  state.type = type;
+  state.action = action;
 
   db.get('SELECT batas_create_akun, total_create_akun FROM Server WHERE id = ?', [serverId], async (err, server) => {
     if (err) {
@@ -1486,9 +1494,27 @@ bot.action(/(create|renew)_username_(ssh)_(.+)/, async (ctx) => {
       return ctx.reply('❌ *Server penuh. Tidak dapat membuat akun baru di server ini.*', { parse_mode: 'Markdown' });
     }
 
-    await ctx.reply('👤 *Masukkan username:*', { parse_mode: 'Markdown' });
+    // ✅ Assign username otomatis
+    state.username = `zi${Date.now()}`;
+
+    if (action === 'create') {
+      if (type === 'ssh') {
+        state.step = `password_${state.action}_${state.type}`;
+        await ctx.reply(`🔑 Masukkan password:`, { parse_mode: 'Markdown' });
+      } else {
+        state.step = `exp_${state.action}_${state.type}`;
+        await ctx.reply(`⏳ Masukkan masa aktif (hari):`, { parse_mode: 'Markdown' });
+      }
+    } else if (action === 'renew') {
+      state.step = `password_${state.action}_${state.type}`;
+      await ctx.reply(`🔑 Masukkan password akun yang akan di-renew:`, { parse_mode: 'Markdown' });
+    } else {
+        state.step = `exp_${state.action}_${state.type}`;
+        await ctx.reply(`⏳ Masukkan masa aktif (hari):`, { parse_mode: 'Markdown' });
+      }
   });
-}); 
+});
+
 
 // === HANDLER TRIAL ===
 bot.action(/(trial)_username_(ssh)_(.+)/, async (ctx) => {
@@ -1580,7 +1606,7 @@ bot.action(/(del)_username_(ssh)_(.+)/, async (ctx) => {
     step: `username_${action}_${type}`,
     serverId, type, action
   };
-  await ctx.reply('👤 *Masukkan username yang ingin dihapus:*', { parse_mode: 'Markdown' });
+  await ctx.reply('👤 *Masukkan Password yang ingin dihapus:*', { parse_mode: 'Markdown' });
 });
 
 bot.on('text', async (ctx) => {
@@ -1659,47 +1685,21 @@ bot.on('text', async (ctx) => {
     }});
     return; // Penting! Jangan lanjut ke case lain
   }
-  if (state.step?.startsWith('username_')) {
-    state.username = text;
+if (state.step?.startsWith('password_')) {
+  state.password = ctx.message.text.trim();
 
-    if (!state.username) {
-      return ctx.reply('❌ *Username tidak valid. Masukkan username yang valid.*', { parse_mode: 'Markdown' });
-    }
-    if (state.username.length < 4 || state.username.length > 20) {
-      return ctx.reply('❌ *Username harus terdiri dari 4 hingga 20 karakter.*', { parse_mode: 'Markdown' });
-    }
-    if (/[A-Z]/.test(state.username)) {
-      return ctx.reply('❌ *Username tidak boleh menggunakan huruf kapital. Gunakan huruf kecil saja.*', { parse_mode: 'Markdown' });
-    }
-    if (/[^a-z0-9]/.test(state.username)) {
-      return ctx.reply('❌ *Username tidak boleh mengandung karakter khusus atau spasi. Gunakan huruf kecil dan angka saja.*', { parse_mode: 'Markdown' });
-    }
-    const { type, action } = state;
-    if (action === 'create') {
-      if (type === 'ssh') {
-        state.step = `password_${state.action}_${state.type}`;
-        await ctx.reply('🔑 *Masukkan password:*', { parse_mode: 'Markdown' });
-      } else {
-        state.step = `exp_${state.action}_${state.type}`;
-        await ctx.reply('⏳ *Masukkan masa aktif (hari):*', { parse_mode: 'Markdown' });
-      }
-    } else if (action === 'renew') {
-      state.step = `exp_${state.action}_${state.type}`;
-      await ctx.reply('⏳ *Masukkan masa aktif (hari):*', { parse_mode: 'Markdown' });
-    }
-  } else if (state.step?.startsWith('password_')) {
-    state.password = ctx.message.text.trim();
-    if (!state.password) {
-      return ctx.reply('❌ *Password tidak valid. Masukkan password yang valid.*', { parse_mode: 'Markdown' });
-    }
-    if (state.password.length < 3) {
-      return ctx.reply('❌ *Password harus terdiri dari minimal 3 karakter.*', { parse_mode: 'Markdown' });
-    }
-    if (/[^a-zA-Z0-9]/.test(state.password)) {
-      return ctx.reply('❌ *Password tidak boleh mengandung karakter khusus atau spasi.*', { parse_mode: 'Markdown' });
-    }
-    state.step = `exp_${state.action}_${state.type}`;
-    await ctx.reply('⏳ *Masukkan masa aktif (hari):*', { parse_mode: 'Markdown' });
+  if (!state.password) {
+    return ctx.reply('❌ *Password tidak valid. Masukkan password yang valid.*', { parse_mode: 'Markdown' });
+  }
+  if (state.password.length < 3) {
+    return ctx.reply('❌ *Password harus minimal 3 karakter.*', { parse_mode: 'Markdown' });
+  }
+  if (/[^a-zA-Z0-9]/.test(state.password)) {
+    return ctx.reply('❌ *Password tidak boleh mengandung karakter khusus atau spasi.*', { parse_mode: 'Markdown' });
+  }
+
+  state.step = `exp_${state.action}_${state.type}`;
+  await ctx.reply('⏳ *Masukkan masa aktif (hari):*', { parse_mode: 'Markdown' });
   } else if (state.step?.startsWith('exp_')) {
     const expInput = ctx.message.text.trim();
     if (!/^\d+$/.test(expInput)) {
@@ -1769,9 +1769,9 @@ if (exp > 365) {
               await recordAccountTransaction(ctx.from.id, 'ssh');
             }
             logger.info(`Account created and transaction recorded for user ${ctx.from.id}, type: ${type}`);
-const maskedUsername = username.length > 3 
-  ? `${username.slice(0, 3)}${'x'.repeat(username.length - 3)}` 
-  : username; // Kalau kurang dari 3 char, tampilkan tanpa masking
+const maskedpassword = password.length > 3 
+  ? `${password.slice(0, 3)}${'x'.repeat(password.length - 3)}` 
+  : password; // Kalau kurang dari 3 char, tampilkan tanpa masking
 
 // 🔔 Kirim notifikasi ke grup
 await bot.telegram.sendMessage(
@@ -1781,7 +1781,7 @@ await bot.telegram.sendMessage(
 ━━━━━━━━━━━━━━━━━━━━
 👤 <b>User:</b> ${ctx.from.first_name} (${ctx.from.id})
 🧾 <b>Type:</b> ${type.toUpperCase()}
-📛 <b>Username:</b> ${maskedUsername}
+📛 <b>Password:</b> ${maskedpassword}
 📆 <b>Expired:</b> ${exp || '0'}
 💾 <b>Quota:</b> ${quota || '0'}
 🌐 <b>Server ID:</b> ${serverId}
@@ -1791,13 +1791,13 @@ await bot.telegram.sendMessage(
 );
           } else if (action === 'renew') {
             if (type === 'ssh') {
-              msg = await renewssh(username, exp, iplimit, serverId);
+              msg = await renewssh(username, password, exp, iplimit, serverId);
               await recordAccountTransaction(ctx.from.id, 'ssh');
             }
             logger.info(`Account renewed and transaction recorded for user ${ctx.from.id}, type: ${type}`);
-const maskedUsername = username.length > 3 
-  ? `${username.slice(0, 3)}${'x'.repeat(username.length - 3)}` 
-  : username; // Kalau kurang dari 3 char, tampilkan tanpa masking
+const maskedpassword = password.length > 3 
+  ? `${password.slice(0, 3)}${'x'.repeat(password.length - 3)}` 
+  : password; // Kalau kurang dari 3 char, tampilkan tanpa masking
 // 🔔 Kirim notifikasi ke grup
 await bot.telegram.sendMessage(
   GROUP_ID,
@@ -1806,7 +1806,7 @@ await bot.telegram.sendMessage(
 ━━━━━━━━━━━━━━━━━━━━
 👤 <b>User:</b> ${ctx.from.first_name} (${ctx.from.id})
 🧾 <b>Type:</b> ${type.toUpperCase()}
-📛 <b>Username:</b> ${maskedUsername}
+📛 <b>Password:</b> ${maskedpassword}
 📆 <b>New Expiry:</b> ${exp || '0'}
 💾 <b>Quota:</b> ${quota || '0'}
 🌐 <b>Server ID:</b> ${serverId}

@@ -22,12 +22,13 @@ if (!/^[a-z0-9-]+$/.test(username)) {
     const AUTH_TOKEN = server.auth;
 
     // Endpoint delete
-    const curlCommand = `curl "http://${domain}:5888/delete/zivpn?password=${password}&auth=${AUTH_TOKEN}"`;
+    const curlCommand = `curl "http://${domain}:5888/delete/zivpn?password=${username}&auth=${AUTH_TOKEN}"`;
 
     exec(curlCommand, (_, stdout) => {
       let d;
       try {
         d = JSON.parse(stdout);
+        console.log("⚠️ FULL DATA:", JSON.stringify(d, null, 2));
       } catch (e) {
         console.error('❌ Gagal parsing JSON:', e.message);
         console.error('🪵 Output:', stdout);
@@ -48,13 +49,7 @@ if (!/^[a-z0-9-]+$/.test(username)) {
         }
       );
 
-      const msg = `❌ *AKUN ZIVPN BERHASIL DIHAPUS*
-━━━━━━━━━━━━━━━━━━━━━
-🌍 *Server:* ${domain}
-🔑 *Password:* ${password}
-━━━━━━━━━━━━━━━━━━━━━
-${d.message}
-`;
+      const msg = `${d.message}`;
         return resolve(msg);
       });
     });

@@ -27,6 +27,7 @@ if (!/^[a-z0-9-]+$/.test(username)) {
       let d;
       try {
         d = JSON.parse(stdout);
+        console.log("⚠️ FULL DATA:", JSON.stringify(d, null, 2));
       } catch (e) {
         console.error('❌ Gagal parsing JSON:', e.message);
         console.error('🪵 Output:', stdout);
@@ -47,13 +48,7 @@ if (!/^[a-z0-9-]+$/.test(username)) {
       }
 
       // Pesan untuk Telegram / Bot
-      const msg = `🔹 *TRIAL ZIVPN BERHASIL DIBUAT* 🔹
-━━━━━━━━━━━━━━━━━━━━━
-🌍 *Server:* ${domain}
-⏳ *Masa Aktif:* ${exp} Menit
-━━━━━━━━━━━━━━━━━━━━━
-${d.message}
-`;
+      const msg = `${d.message}`;
 
         return resolve(msg);
       });
