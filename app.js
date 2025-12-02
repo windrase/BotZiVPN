@@ -398,7 +398,7 @@ if (isReseller) {
       { text: '📶 Cek Server', callback_data: 'cek_service' }
     ],
     [
-      { text: '⌛ Trial Akun', callback_data: 'service_trial' },
+     { text: '⌛ Trial Akun', callback_data: 'service_trial2' },
       { text: '💰 TopUp Saldo', callback_data: 'topup_saldo' }
     ]
   ];
@@ -1251,8 +1251,24 @@ bot.action('addserver_reseller', async (ctx) => {
     '/addserver_reseller <domain> <auth> <harga> <nama_server> <quota> <iplimit> <batas_create_akun>'
   );
 });
-
 bot.action('service_trial', async (ctx) => {
+  try {
+    await ctx.answerCbQuery(); // hapus loading di tombol
+
+    await ctx.reply(
+      `📩 <b>Silakan chat admin untuk request Trial</b>\n\n` +
+      `👤 Admin: <a href="https://t.me/ARI_VPN_STORE">@ARI_VPN_STORE</a>\n` +
+      `💬 Kirim pesan: "Minta Trial UDP ZIVPN bang"`,
+      { parse_mode: "HTML" }
+    );
+
+  } catch (error) {
+    console.error("service_trial error:", error);
+    await ctx.reply("❌ Terjadi kesalahan, silakan coba lagi.");
+  }
+});
+
+bot.action('service_trial2', async (ctx) => {
   if (!ctx || !ctx.match) {
     return ctx.reply('❌ *GAGAL!* Terjadi kesalahan saat memproses permintaan Anda. Silakan coba lagi nanti.', { parse_mode: 'Markdown' });
   }
