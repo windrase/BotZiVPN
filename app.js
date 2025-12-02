@@ -1549,11 +1549,11 @@ bot.action(/(trial)_username_(ssh)_(.+)/, async (ctx) => {
   // === Jika lolos, lanjut buat akun trial ===
 const username = 'trial-' + Math.random().toString(36).substring(2, 7); // contoh: trial-drsfd
 const password = 'none';
-const exp = '1';
-const exp1 = '3 Hour';
-const quota = '1';
-const quota1 = '1 GB';
-const iplimit = '1';
+const exp = '90';
+const exp1 = '90 Menit';
+const quota = '0';
+const quota1 = '0';
+const iplimit = '2';
 
 userState[ctx.chat.id] = { username, password, type, serverId, action, trial: true };
 
