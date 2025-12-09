@@ -339,54 +339,72 @@ async function sendMainMenu(ctx) {
   try {
     const serviceTypes = '"ssh","vmess","vless","trojan","shadowsocks"';
     
-    // Fungsi untuk menyensor ID (Ambil 3 depan, 3 belakang)
+    // Fungsi sensor ID (Contoh: 123****789)
     const sensorId = (id) => {
         const str = id.toString();
-        if (str.length < 6) return str; // Jangan sensor jika ID terlalu pendek
+        if (str.length < 6) return str;
         return str.substring(0, 3) + '****' + str.substring(str.length - 3);
     };
 
     const topUsers = await new Promise((resolve) => {
-      // Query hitungan transaksi bulan ini
+      // QUERY PENTING: Mengambil username dari tabel 'users'
       const query = `
-        SELECT user_id, COUNT(*) as count 
-        FROM transactions 
-        WHERE type IN (${serviceTypes}) 
-        AND timestamp >= ${monthStart}
-        GROUP BY user_id 
+        SELECT t.user_id, u.username, COUNT(*) as count 
+        FROM transactions t
+        LEFT JOIN users u ON t.user_id = u.user_id
+        WHERE t.type IN (${serviceTypes}) 
+        AND t.timestamp >= ${monthStart}
+        GROUP BY t.user_id 
         ORDER BY count DESC 
         LIMIT 3
       `;
       db.all(query, [], (err, rows) => resolve(rows || []));
     });
 
-    // --- Mapping Data Juara 1 ---
+    // --- Juara 1 ---
     if (topUsers[0]) {
       const realId = topUsers[0].user_id.toString();
-      top1Id = sensorId(realId); // ID Disensor
-      top1Name = `Member ${realId.substring(0,5)}`; // Username/Nama (Default: Member ID)
+      top1Id = sensorId(realId);
       top1Count = topUsers[0].count;
+      
+      // LOGIC NAMA: Jika ada username pakai username, jika tidak pakai "Member [ID]"
+      if (topUsers[0].username && topUsers[0].username !== 'null') {
+          top1Name = topUsers[0].username; 
+      } else {
+          top1Name = `Member ${realId.substring(0,5)}..`;
+      }
     }
 
-    // --- Mapping Data Juara 2 ---
+    // --- Juara 2 ---
     if (topUsers[1]) {
       const realId = topUsers[1].user_id.toString();
       top2Id = sensorId(realId);
-      top2Name = `Member ${realId.substring(0,5)}`;
       top2Count = topUsers[1].count;
+
+      if (topUsers[1].username && topUsers[1].username !== 'null') {
+          top2Name = topUsers[1].username;
+      } else {
+          top2Name = `Member ${realId.substring(0,5)}..`;
+      }
     }
 
-    // --- Mapping Data Juara 3 ---
+    // --- Juara 3 ---
     if (topUsers[2]) {
       const realId = topUsers[2].user_id.toString();
       top3Id = sensorId(realId);
-      top3Name = `Member ${realId.substring(0,5)}`;
       top3Count = topUsers[2].count;
+
+      if (topUsers[2].username && topUsers[2].username !== 'null') {
+          top3Name = topUsers[2].username;
+      } else {
+          top3Name = `Member ${realId.substring(0,5)}..`;
+      }
     }
 
   } catch (e) {
     logger.error('Gagal memuat Top User: ' + e.message);
   }
+  
 
   // Jumlah pengguna bot
   let jumlahPengguna = 0;
@@ -408,7 +426,7 @@ const statusReseller = isReseller ? 'Reseller' : 'Bukan Reseller';
 
 const messageText = `
 ╔════════════════════╗
-      <b>⚡ ${NAMA_STORE} ⚡</b>    
+   <b>⚡ ${NAMA_STORE} ⚡</b>    
 ╚════════════════════╝
 <b>🚀 ZIVPN PREMIUM TUNNELING</b>
 <i>💸 Harga Murah • ⚡ Koneksi Cepat • 🔒 Pasti Aman</i>
@@ -418,20 +436,19 @@ const messageText = `
 ├ 📛 <b>Nama :</b> <code>${userName}</code>
 ├ 🆔 <b>ID   :</b> <code>${userId}</code>
 ├ 💎 <b>Role :</b> ${statusReseller}
-└ 💵 <b>Saldo:</b> <code>Rp ${saldo}</code>
+└ 💵 <b>Saldo:</b> <code>Rp ${saldo.toLocaleString('id-ID')}</code>
 
 🏆 <b>TOP PENGGUNA (Bulan Ini)</b>
 <blockquote>🥇 <b>${top1Name}</b>
-   └ 🆔 <code>${top1Id}</code> • Akun <b>${top1Count}</b>
+   └ 🆔 <code>${top1Id}</code> • <b>${top1Count}</b> Akun
 🥈 <b>${top2Name}</b>
-   └ 🆔 <code>${top2Id}</code> • Akun <b>${top2Count}</b>
+   └ 🆔 <code>${top2Id}</code> • <b>${top2Count}</b> Akun
 🥉 <b>${top3Name}</b>
-   └ 🆔 <code>${top3Id}</code> • Akun <b>${top3Count}</b></blockquote>
+   └ 🆔 <code>${top3Id}</code> • <b>${top3Count}</b> Akun</blockquote>
 
 📊 <b>STATISTIC BOT</b>
 <blockquote><b>📉 Personal Stats</b>
 • Today: <b>${userToday}</b> | Month: <b>${userMonth}</b>
-
 <b>📈 Global Stats</b>
 • Today: <b>${globalToday}</b> | Month: <b>${globalMonth}</b></blockquote>
 
@@ -443,7 +460,6 @@ const messageText = `
 ━━━━━━━━━━━━━━━━━━
 👨‍💻 <b>Owner:</b> @WINTUNELINGVPNN
 `;
-  
   
 let keyboard;
 
@@ -462,6 +478,9 @@ if (isReseller) {
      { text: '⌛ Trial Akun', callback_data: 'service_trial2' },
       { text: '💰 TopUp Saldo', callback_data: 'topup_saldo' }
     ]
+    [
+      { text: '📞 Hubungi Admin (WhatsApp)', url: 'https://wa.me/6285921645742' }
+    ]
   ];
 } else {
   // Keyboard untuk buyer
@@ -473,6 +492,9 @@ if (isReseller) {
     [
       { text: '⌛ Trial Akun', callback_data: 'service_trial' },
       { text: '💰 TopUp Saldo', callback_data: 'topup_saldo' },
+    ],
+    [
+      { text: '📞 Hubungi Admin (WhatsApp)', url: 'https://wa.me/6285921645742' }
     ],
     [
       { text: '🤝 Jadi Reseller & Dapat Harga Spesial', callback_data: 'jadi_reseller' }
