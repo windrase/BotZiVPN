@@ -332,6 +332,59 @@ async function sendMainMenu(ctx) {
     });
   } catch (e) {}
 
+    // ============================================================
+  // MULAI KODE TOP USER (BULAN INI)
+  // ============================================================
+  
+  // 1. Definisikan variabel default
+  let top1Name = '-', top1Id = '-', top1Count = '0';
+  let top2Name = '-', top2Id = '-', top2Count = '0';
+  let top3Name = '-', top3Id = '-', top3Count = '0';
+
+  // 2. Logika pencarian data
+  try {
+    const serviceTypes = '"ssh","vmess","vless","trojan","shadowsocks"';
+    
+    const topUsers = await new Promise((resolve) => {
+      // Query database: Hitung transaksi sukses hanya dari awal bulan (monthStart)
+      const query = `
+        SELECT user_id, COUNT(*) as count 
+        FROM transactions 
+        WHERE type IN (${serviceTypes}) 
+        AND timestamp >= ${monthStart} 
+        GROUP BY user_id 
+        ORDER BY count DESC 
+        LIMIT 3
+      `;
+      db.all(query, [], (err, rows) => resolve(rows || []));
+    });
+
+    // 3. Masukkan data ke variabel
+    // Juara 1
+    if (topUsers[0]) {
+      const idStr = topUsers[0].user_id.toString();
+      top1Id = idStr; 
+      top1Name = `Member ${idStr.substring(0,4)}...`; // Sensor nama sedikit
+      top1Count = topUsers[0].count;
+    }
+    // Juara 2
+    if (topUsers[1]) {
+      const idStr = topUsers[1].user_id.toString();
+      top2Id = idStr;
+      top2Name = `Member ${idStr.substring(0,4)}...`;
+      top2Count = topUsers[1].count;
+    }
+    // Juara 3
+    if (topUsers[2]) {
+      const idStr = topUsers[2].user_id.toString();
+      top3Id = idStr;
+      top3Name = `Member ${idStr.substring(0,4)}...`;
+      top3Count = topUsers[2].count;
+    }
+  } catch (e) {
+    logger.error('Gagal memuat Top User: ' + e.message);
+  }
+  
   // Jumlah pengguna bot
   let jumlahPengguna = 0;
   let isReseller = false;
@@ -361,11 +414,14 @@ const messageText = `
 ├ 💎 <b>Role :</b> ${statusReseller}
 └ 💵 <b>Saldo:</b> <code>Rp ${saldo}</code>
 
-╭─── 🏆 <b>TOP USER</b>
+╭─── 🏆 <b>TOP CREATORS (Bulan Ini)</b>
 │
-├ 🥇 ${top1Name} (${top1Count})
-├ 🥈 ${top2Name} (${top2Count})
-└ 🥉 ${top3Name} (${top3Count})
+├ 🥇 <b>${top1Name}</b>
+│  └ 🆔 <code>${top1Id}</code> • 📦 <b>${top1Count}</b>
+├ 🥈 <b>${top2Name}</b>
+│  └ 🆔 <code>${top2Id}</code> • 📦 <b>${top2Count}</b>
+└ 🥉 <b>${top3Name}</b>
+   └ 🆔 <code>${top3Id}</code> • 📦 <b>${top3Count}</b>
 
 ╭─── 📊 <b>TRAFFIC DATA</b>
 │
@@ -385,7 +441,6 @@ const messageText = `
 👨‍💻 <b>Owner:</b> @WINTUNELINGVPNN
 `;
   
-
 let keyboard;
 
 if (isReseller) {
