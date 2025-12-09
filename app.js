@@ -350,39 +350,41 @@ const statusReseller = isReseller ? 'Reseller' : 'Bukan Reseller';
   // Latency (dummy, bisa diubah sesuai kebutuhan)
   const latency = (Math.random() * 0.1 + 0.01).toFixed(2);
 
-  const messageText = `
-╭─ <b>⚡ BOT ZIVPN UDP ${NAMA_STORE} ⚡</b>
-├ Bot VPN UDP Premium dengan sistem otomatis
-├ Pembelian layanan VPN UDP berkualitas tinggi
-└ Akses internet cepat & aman dengan server terpercaya! 
+const messageText = `
+╔════════════════════╗
+   <b>⚡ ${NAMA_STORE} ⚡</b>    
+╚════════════════════╝
 
-<b>👋 Hai, Member <code>${userName}</code>!</b>
-ID: <code>${userId}</code>
-Saldo: <code>Rp ${saldo}</code>
-Status: <code>${statusReseller}</code>
+╭─── 👤 <b>USER PROFILE</b>
+│
+├ 📛 <b>Nama :</b> <code>${userName}</code>
+├ 💎 <b>Role :</b> ${statusReseller}
+└ 💵 <b>Saldo:</b> <code>Rp ${saldo}</code>
 
-<blockquote>📊 <b>Statistik Anda</b>
-• Hari Ini    : ${userToday} akun
-• Minggu Ini  : ${userWeek} akun
-• Bulan Ini   : ${userMonth} akun
+╭─── 🏆 <b>TOP USER</b>
+│
+├ 🥇 ${top1Name} (${top1Count})
+├ 🥈 ${top2Name} (${top2Count})
+└ 🥉 ${top3Name} (${top3Count})
 
-🌐 <b>Statistik Global</b>
-• Hari Ini    : ${globalToday} akun
-• Minggu Ini  : ${globalWeek} akun
-• Bulan Ini   : ${globalMonth} akun
-</blockquote>
+╭─── 📊 <b>TRAFFIC DATA</b>
+│
+├ <b>📉 Personal Stats</b>
+│ ▫️ Today: ${userToday} | Month: ${userMonth}
+│
+└ <b>📈 Global Stats</b>
+  ▫️ Today: ${globalToday} | Month: ${globalMonth}
 
-⚙️ <b>COMMAND</b>
-• 🏠 Menu Utama   : /start
-• 🔑 Menu Admin   : /admin
-• 🛡️ Admin Panel  : /helpadmin
+╭─── ⚙️ <b>NAVIGATION</b>
+│
+├ 🏠 <b>/start</b>  — Main Menu
+├ 🔑 <b>/admin</b>  — Admin Area
+└ 🛡️ <b>/helpadmin</b> — Guide
 
-👨‍💻 <b>Pembuat:</b> @ARI_VPN_STORE
-🛠️ <b>Credit:</b> ARI STORE × API POTATO
-🔧 <b>Base:</b> FighterTunnel
-👥 <b>Pengguna BOT:</b> ${jumlahPengguna}
-⏱️ <b>Latency:</b> ${latency} ms
-──────────────────────────`;
+━━━━━━━━━━━━━━━━━━
+👨‍💻 <b>Owner:</b> @WINTUNELINGVPNN
+`;
+  
 
 let keyboard;
 
