@@ -407,10 +407,12 @@ const messageText = `
 ╔════════════════════╗
    <b>⚡ ${NAMA_STORE} ⚡</b>    
 ╚════════════════════╝
+<i>🚀 Harga Termurah • Kualitas Sultan • Anti Ribet</i>
+<i>✨ Nikmati ZIVPN Premium dengan koneksi stabil!</i>
 
 ╭─── 👤 <b>USER PROFILE</b>
-│
 ├ 📛 <b>Nama :</b> <code>${userName}</code>
+├ 🆔 <b>ID   :</b> <code>${userId}</code>
 ├ 💎 <b>Role :</b> ${statusReseller}
 └ 💵 <b>Saldo:</b> <code>Rp ${saldo}</code>
 
@@ -424,15 +426,12 @@ const messageText = `
    └ 🆔 <code>${top3Id}</code> • 📦 <b>${top3Count}</b>
 
 ╭─── 📊 <b>TRAFFIC DATA</b>
-│
 ├ <b>📉 Personal Stats</b>
 │ ▫️ Today: ${userToday} | Month: ${userMonth}
-│
 └ <b>📈 Global Stats</b>
   ▫️ Today: ${globalToday} | Month: ${globalMonth}
 
 ╭─── ⚙️ <b>NAVIGATION</b>
-│
 ├ 🏠 <b>/start</b>  — Main Menu
 ├ 🔑 <b>/admin</b>  — Admin Area
 └ 🛡️ <b>/helpadmin</b> — Guide
@@ -440,6 +439,7 @@ const messageText = `
 ━━━━━━━━━━━━━━━━━━
 👨‍💻 <b>Owner:</b> @WINTUNELINGVPNN
 `;
+  
   
 let keyboard;
 
