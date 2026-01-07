@@ -3355,32 +3355,69 @@ const qrBuffer = Buffer.from(qrResponse.data);
   }
 }
 
-// ===== CEK STATUS BY AMOUNT (GATEWAY) - PREMIUM + LOG =====
-async function cekStatusAmountGateway(amount) {
-  const url = `http://api.rajaserverpremium.web.id/orderkuota/cekstatus?apikey=${APIKEY}&auth_username=${AUTH_USER}&auth_token=${AUTH_TOKEN}&web_mutasi=${WEB_MUTASI}&amount=${amount}`;
+const SOCKS_POOL = [
+  'aristore:1447@idnusa.rajaserverpremium.web.id:1080',
+  'aristore:1447@biznet.rajaserverpremium.web.id:1080',
+];
 
-  for (let i = 0; i < 3; i++) {
-    try {
-      logger.info(`[QRIS] Cek status amount=${amount} try=${i+1}`);
-      const res = await axios.get(url, { timeout: 20000 });
-      logger.info(`[QRIS] Gateway OK amount=${amount} => state=${res.data?.payment?.state || '-'}`);
-      return res.data;
-    } catch (err) {
-      const status = err?.response?.status;
-      logger.error(`[QRIS] Gateway ERROR amount=${amount} try=${i+1} | status=${status || '-'} code=${err.code || '-'} msg=${err.message}`);
+function getRandomProxy() {
+  return SOCKS_POOL[Math.floor(Math.random() * SOCKS_POOL.length)];
+}
 
-      // 502/503/504 = biasanya sementara, retry pakai backoff
-      if ([502, 503, 504].includes(status)) {
-        await new Promise(r => setTimeout(r, 500 * (i + 1)));
-        continue;
+function parseSocks(proxyStr) {
+  // "user:pass@host:port"
+  const [auth, hostport] = proxyStr.split('@');
+  const [user, pass] = auth.split(':');
+  return { hostport, user, pass };
+}
+
+// ===== CEK QRIS (ORDERKUOTA – VIA CURL SIMPLE) =====
+function cekQRISOrderKuota() {
+  return new Promise((resolve, reject) => {
+    const { hostport, user, pass } = parseSocks(getRandomProxy());
+
+    const curlCmd = `
+curl --silent --compressed \
+  --connect-timeout 10 --max-time 20 \
+  --socks5-hostname '${hostport}' \
+  --proxy-user '${user}:${pass}' \
+  -X POST '${WEB_MUTASI}' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  -H 'Accept-Encoding: gzip' \
+  -H 'User-Agent: okhttp/4.12.0' \
+  --data-urlencode 'requests[qris_history][page]=1' \
+  --data-urlencode 'auth_username=${AUTH_USER}' \
+  --data-urlencode 'auth_token=${AUTH_TOKEN}'
+`.trim();
+
+    exec(curlCmd, { maxBuffer: 1024 * 1024 * 5 }, (err, stdout) => {
+      const out = (stdout || '').trim();
+
+      // kalau ada output, coba parse dulu (anggap sukses walau err)
+      if (out) {
+        try {
+          return resolve(JSON.parse(out));
+        } catch (e) {
+          // output ada tapi bukan JSON
+          return reject(new Error(`Invalid JSON: ${out.slice(0, 200)}`));
+        }
       }
 
-      // selain itu langsung stop (misal 401/403 dll)
-      break;
-    }
-  }
+      // stdout kosong => baru anggap gagal
+      return reject(err || new Error('Empty response from curl'));
+    });
+  });
+}
 
-  return { status: 'error', payment: { state: 'unknown', amount }, result: [] };
+// ===== AMBIL TX BY KREDIT (AMOUNT) =====
+function findTxByKredit(qrisData, amount) {
+  const list = qrisData?.qris_history?.results || [];
+  const target = Number(amount);
+
+  return list.find((tx) => {
+    const kredit = Number(String(tx.kredit || '0').replace(/\./g, ''));
+    return kredit === target && String(tx.status || '').toUpperCase() === 'IN';
+  }) || null;
 }
 
 // ===== LOOP CEK QRIS =====
@@ -3393,7 +3430,6 @@ async function checkQRISStatus() {
 
       const depositAge = Date.now() - deposit.timestamp;
       if (depositAge > 5 * 60 * 1000) {
-        // Handle expired payment
         try {
           if (deposit.qrMessageId) {
             await bot.telegram.deleteMessage(deposit.userId, deposit.qrMessageId);
@@ -3417,42 +3453,30 @@ async function checkQRISStatus() {
       try {
         const expectedAmount = Number(deposit.amount);
 
-        // ✅ cek ke gateway (by amount)
-        const gw = await cekStatusAmountGateway(expectedAmount);
+        // ✅ ambil mutasi orderkuota (via curl + proxy)
+        const qrisData = await cekQRISOrderKuota();
 
-        // validasi response
-        if (!gw || gw.status !== 'success' || !gw.payment) {
-          logger.warn(`Gateway invalid for ${uniqueCode}: ${JSON.stringify(gw)}`);
+        if (!qrisData?.success || !qrisData?.qris_history?.success) {
+          logger.warn(`OrderKuota invalid for ${uniqueCode}: ${JSON.stringify(qrisData)}`);
           continue;
         }
 
-        const state = String(gw.payment.state || '').toLowerCase();
+        const matchedTx = findTxByKredit(qrisData, expectedAmount);
 
-        // ✅ pending = biarin loop berikutnya cek lagi
-        if (state === 'pending') {
+        if (!matchedTx) {
           logger.info(`⏳ Payment pending for ${uniqueCode} (amount=${expectedAmount})`);
           continue;
         }
 
-        // ✅ sukses = proses
-        if (state === 'success' || state === 'paid' || state === 'settlement') {
-          // kalau gateway ngasih detail transaksi, ambil aja
-          const matchedTx = Array.isArray(gw.result) && gw.result.length ? gw.result[0] : null;
+        const success = await processMatchingPayment(deposit, matchedTx, uniqueCode);
+        if (success) {
+          logger.info(`✅ Payment processed successfully for ${uniqueCode}`);
 
-          const success = await processMatchingPayment(deposit, matchedTx, uniqueCode);
-          if (success) {
-            logger.info(`✅ Payment processed successfully for ${uniqueCode}`);
-
-            delete global.pendingDeposits[uniqueCode];
-            db.run('DELETE FROM pending_deposits WHERE unique_code = ?', [uniqueCode], (err) => {
-              if (err) logger.error('Gagal hapus pending_deposits (success):', err.message);
-            });
-          }
-          continue;
+          delete global.pendingDeposits[uniqueCode];
+          db.run('DELETE FROM pending_deposits WHERE unique_code = ?', [uniqueCode], (err) => {
+            if (err) logger.error('Gagal hapus pending_deposits (success):', err.message);
+          });
         }
-
-        // state lain
-        logger.warn(`Payment state unknown for ${uniqueCode}: ${state}`);
       } catch (error) {
         logger.error(`Error checking payment status for ${uniqueCode}:`, error?.message || error);
       }
