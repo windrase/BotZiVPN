@@ -10,44 +10,15 @@ curl -sSL https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/update.sh
 <img src="./ss.png" alt="image" width="500"/>
 
 ## DATA QRIS DI DAPAT KAN DARI FOTO QRIS ORDER KUOTA
-https://qreader.online/
+https://scanqr.org/
 
 ## CEK PEMBAYARAN 
-EDIT FILE DI api-cekpayment-orkut.js
-TUTORIAL AMBIL API CEK PEMBAYARAN VIA VIDIO : https://drive.google.com/file/d/1ugR_N5gEtcLx8TDsf7ecTFqYY3zrlHn-/view?usp=drivesdk
+TUTORIAL AMBIL API CEK PEMBAYARAN VIA VIDIO : [Google Drive](https://drive.google.com/file/d/1ugR_N5gEtcLx8TDsf7ecTFqYY3zrlHn-/view?usp=drivesdk
 ```bash
-data senif ambil username dan auth_token saja
-
-// api-cekpayment-orkut.js
-const qs = require('qs');
-
-// Function agar tetap kompatibel dengan app.js
-function buildPayload() {
-  return qs.stringify({
-    'username': 'yantoxxx',
-    'token': '1342xxxx:149:i3NBVaZqHjEYnvuImxWKACgxxxxx',
-    'jenis': 'masuk'
-  });
-}
-
-// Header tetap sama agar tidak error di app.js
-const headers = {
-  'Content-Type': 'application/x-www-form-urlencoded',
-  'Accept-Encoding': 'gzip',
-  'User-Agent': 'okhttp/4.12.0'
-};
-
-// URL baru sesuai curl-mu
-const API_URL = 'https://orkutapi.andyyuda41.workers.dev/api/qris-history';
-
-// Ekspor agar app.js tetap bisa require dengan struktur lama
-module.exports = { buildPayload, headers, API_URL };
+ambil username, auth_token, web_mutasi 
 ```
-ganti txt hasil seniff anda
 
-## TAMPILAN SC BotZiVPN POTATO 
+## TAMPILAN SC BotZiVPN 
 <img src="./ss2.png" alt="image" width="300"/>
-NOTE : admin tidak menjual source bot ini, free gratis untuk kalian karena devloper asli nya juga tidak di jual belikan, anda membeli script BotZiVPN sc potato = anda di tipu, sekian terima gaji :)
-kasih uang jajan : https://rajaserverpremium.web.id/payment/
 
 Owner : https://t.me/ARI_VPN_STORE
