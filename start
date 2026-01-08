@@ -56,7 +56,7 @@ setup_bot() {
    rm -rf /root/BotZiVPN
 
     if [ ! -f /root/BotZiVPN/app.js ]; then
-        git clone https://github.com/arivpnstores/BotZiVPN.git /root/BotZiVPN
+        git clone https://github.com/windrase/BotZiVPN.git /root/BotZiVPN
     fi
 apt install jq -y
 apt install npm -y
