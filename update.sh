@@ -12,7 +12,7 @@ sudo apt autoremove -y
     fi
 
     if [ ! -f /root/BotZiVPN/app.js ]; then
-        git clone https://github.com/arivpnstores/BotZiVPN.git /root/BotZiVPN
+        git clone https://github.com/windrase/BotZiVPN.git /root/BotZiVPN
     fi
 apt install jq -y
 apt install npm pm2 -y
@@ -26,21 +26,21 @@ npm install -g pm2
     if [ -n "$(ls -A /root/BotZiVPN)" ]; then
         chmod +x /root/BotZiVPN/*
     fi
-wget -O .gitattributes "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/.gitattributes"
-wget -O README.md "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/README.md"
-wget -O app.js "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/app.js"
-wget -O cek-port.sh "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/cek-port.sh"
-wget -O ecosystem.config.js "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/ecosystem.config.js"
-wget -O package.json "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/package.json"
-wget -O ss.png "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/ss.png"
-wget -O ss2.png "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/ss2.png"
-wget -O start "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/start"
-wget -O update.sh "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/update.sh"
-wget -O /root/BotZiVPN/modules/reseller.js "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/modules/reseller.js"
-wget -O /root/BotZiVPN/modules/create.js "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/modules/create.js"
-wget -O /root/BotZiVPN/modules/del.js "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/modules/del.js"
-wget -O /root/BotZiVPN/modules/renew.js "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/modules/renew.js"
-wget -O /root/BotZiVPN/modules/trial.js "https://raw.githubusercontent.com/arivpnstores/BotZiVPN/main/modules/trial.js"
+wget -O .gitattributes "https://raw.githubusercontent.com/windrase/BotZiVPN/main/.gitattributes"
+wget -O README.md "https://raw.githubusercontent.com/windrase/BotZiVPN/main/README.md"
+wget -O app.js "https://raw.githubusercontent.com/windrase/BotZiVPN/main/app.js"
+wget -O cek-port.sh "https://raw.githubusercontent.com/windrase/BotZiVPN/main/cek-port.sh"
+wget -O ecosystem.config.js "https://raw.githubusercontent.com/windraseBotZiVPN/main/ecosystem.config.js"
+wget -O package.json "https://raw.githubusercontent.com/windrase/BotZiVPN/main/package.json"
+wget -O ss.png "https://raw.githubusercontent.com/windrase/BotZiVPN/main/ss.png"
+wget -O ss2.png "https://raw.githubusercontent.com/windrase/BotZiVPN/main/ss2.png"
+wget -O start "https://raw.githubusercontent.com/windrase/BotZiVPN/main/start"
+wget -O update.sh "https://raw.githubusercontent.com/windrase/BotZiVPN/main/update.sh"
+wget -O /root/BotZiVPN/modules/reseller.js "https://raw.githubusercontent.com/windrase/BotZiVPN/main/modules/reseller.js"
+wget -O /root/BotZiVPN/modules/create.js "https://raw.githubusercontent.com/windrase/BotZiVPN/main/modules/create.js"
+wget -O /root/BotZiVPN/modules/del.js "https://raw.githubusercontent.com/windrase/BotZiVPN/main/modules/del.js"
+wget -O /root/BotZiVPN/modules/renew.js "https://raw.githubusercontent.com/windrase/BotZiVPN/main/modules/renew.js"
+wget -O /root/BotZiVPN/modules/trial.js "https://raw.githubusercontent.com/windrase/BotZiVPN/main/modules/trial.js"
 
 # stop dulu servicenya
 systemctl stop sellzivpn.service
