@@ -3007,7 +3007,7 @@ async function handleDepositState(ctx, userId, data) {
   // Cek apakah user reseller
   const isReseller = await isUserReseller(userId);
   const statusReseller = isReseller ? 'Reseller' : 'Bukan Reseller';
-  const minDeposit = isReseller ? 100000 : 1000; // 100k untuk reseller, 1k untuk user biasa
+  const minDeposit = isReseller ? 1000 : 1000; // 100k untuk reseller, 1k untuk user biasa
 
   let currentAmount = global.depositState[userId].amount || '';
 
