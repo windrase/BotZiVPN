@@ -2,7 +2,8 @@
 
 # Daftar server (ubah sesuai kebutuhan)
 servers=(
-  "biznet.rajaserverpremium.web.id"
+  "udp-premium.windratuneup.my.id"
+  "udp-premium.wintunneling.web.id"
 )
 
 # Daftar port + label
